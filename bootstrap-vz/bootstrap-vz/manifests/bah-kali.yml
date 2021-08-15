@@ -1,0 +1,106 @@
+#
+# Kali image for Becoming a Hacker
+#
+---
+name: "{system.release}-{system.architecture}-{%y}{%m}{%d}"
+provider:
+  name: kvm
+  virtio_modules:
+  - virtio_pci
+  - virtio_blk
+bootstrapper:
+  workspace: /target
+  mirror: 'http://omar-cobbler/kali/'
+  include_packages:
+  - gnupg
+system:
+  release: kali-rolling
+  architecture: amd64
+  bootloader: grub
+  charmap: UTF-8
+  locale: en_US
+  #cmm - change accordingly
+  timezone: 'GMT+1'
+  #timezone: EST
+  #timezone: UTC
+  #timezone: PST
+volume:
+  backing: raw
+  partitions:
+    type: msdos
+    boot:
+      filesystem: ext2
+      size: 128MiB
+    root:
+      filesystem: ext4
+      size: 19GiB
+    swap:
+      size: 128MiB
+packages:
+  mirror: 'http://omar-cobbler/kali/'
+  components:
+  - main
+  - non-free
+  - contrib
+  install_standard: true
+  install:
+  - busybox                # debootstrap needs this to install Kali
+  - cloud-init             # Custom packages
+  - kali-linux
+  - kali-linux-all
+  # Try not to add to this list.  Add below in commands so prebootstrapped works
+plugins:
+  #prebootstrapped: {} # comment out image: to build a new one
+  #  image: /target/volume-5be2ca79.raw.backup
+  root_password:
+    password: seccon!
+  cloud_init: {}
+  ntp:
+    servers: [192.168.4.253]
+  file_copy:
+    files:
+    - src: bootstrap_files/test_file
+      dst: /root/test_file
+      permissions: "0600"
+      owner: root
+      group: root
+    - src: bootstrap_files/eth1
+      dst: /etc/network/interfaces.d/eth1
+      permissions: "0644"
+      owner: root
+      group: root
+    - src: bootstrap_files/eth2
+      dst: /etc/network/interfaces.d/eth2
+      permissions: "0644"
+      owner: root
+      group: root
+    - src: bootstrap_files/dhclient.conf
+      dst: /etc/dhcp/dhclient.conf
+      permissions: "0644"
+      owner: root
+      group: root
+  commands: # file_copy plugin may need to run first!  Fixed this in our version of bootstrap-vz
+    commands: # None of these run with shell=True, so if you need it, you must be explicit
+    # Pause for debugging, run bootstrap-vz with --pause-on-error
+    #- ['chroot', '{root}', 'false']
+    - ['chroot', '{root}', 'bash', '-c', 'echo "keyboard-configuration    keyboard-configuration/model select Generic 105-key (Intl) PC" | debconf-set-selections']
+    - ['chroot', '{root}', 'bash', '-c', 'echo "keyboard-configuration    keyboard-configuration/variant select English (US)" | debconf-set-selections']
+    # Can't just use packages for LXDE, need to use tasksel
+    # http://askubuntu.com/questions/252056/should-i-use-tasksel-tasks-in-apt-or-install-regular-metapackages
+    - ['chroot', '{root}', 'tasksel', 'install', '--new-install', 'lxde-destop']
+    - ['chroot', '{root}', 'apt-get', 'install', '-y', 'kali-desktop-lxde']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'ntp']
+    # In case cloud-init totally bombs, make sure SSH is still available to troubleshoot
+    - ['chroot', '{root}', 'systemctl', 'enable', 'ssh']
+    # cloud-init stages we're likely to use
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-init.service']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-init-local.service']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-config.service']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-final.service']
+    # We want root, don't disable it
+    - ['chroot', '{root}', 'sed', '-ie', 's/disable_root: true/disable_root: false/', '/etc/cloud/cloud.cfg']
+    # smartd doesn't like the virtual disks
+    - ['chroot', '{root}', 'systemctl', 'disable', 'smartd']
+    # Misc packages for Becoming a Hacker
+    - ['chroot', '{root}', 'apt-get', 'install', '-y', 'hostapd', 'x11vnc', 'dnsutils', 'build-essential']
+...

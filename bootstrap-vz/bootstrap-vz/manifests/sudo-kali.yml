@@ -1,0 +1,119 @@
+#
+# Kali image for Sudowoodo
+#
+---
+name: "{system.release}-{system.architecture}-{%y}{%m}{%d}"
+provider:
+  name: kvm
+  virtio_modules:
+  - virtio_pci
+  - virtio_blk
+bootstrapper:
+  workspace: bootstrap-vz-target
+  mirror: 'http://http.kali.org/kali/'
+  include_packages:
+  - gnupg
+system:
+  release: kali-rolling
+  architecture: amd64
+  bootloader: grub
+  charmap: UTF-8
+  locale: en_US
+  #cmm - change accordingly
+  #timezone: UTC
+  timezone: EST
+volume:
+  backing: raw
+  partitions:
+    type: msdos
+    boot:
+      filesystem: ext2
+      size: 128MiB
+    root:
+      filesystem: ext4
+      size: 19GiB
+    swap:
+      size: 128MiB
+packages:
+  mirror: 'http://http.kali.org/kali/'
+  components:
+  - main
+  - non-free
+  - contrib
+  install_standard: true
+  install:
+  - busybox                # debootstrap needs this to install Kali
+  - cloud-init             # Custom packages
+  - kali-linux
+  - kali-linux-all
+  # Try not to add to this list.  Add below in commands so prebootstrapped works
+plugins:
+  #prebootstrapped: {} # comment out image: to build a new one
+    #image: /share/bootstrap-vz-target/volume-8bbe750f.raw.backup
+  root_password:
+    password: C1sc0123!
+  cloud_init: {}
+  ntp:
+    servers:
+      - 10.3.0.41
+      - 10.3.0.42
+  file_copy:
+    files:
+    - src: bootstrap_files/cloud.cfg
+      dst: /etc/cloud/cloud.cfg
+      permissions: "0600"
+      owner: root
+      group: root
+    - src: bootstrap_files/sources.list.debian.tmpl
+      dst: /etc/cloud/templates/sources.list.debian.tmpl
+      permissions: "0600"
+      owner: root
+      group: root
+    - src: bootstrap_files/interfaces
+      dst: /etc/network/interfaces
+      permissions: "0644"
+      owner: root
+      group: root
+    - src: bootstrap_files/grub
+      dst: /etc/default/grub
+      permissions: "0644"
+      owner: root
+      group: root
+    - src: bootstrap_files/99-disable-network-config.cfg
+      dst: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+      permissions: "0644"
+      owner: root
+      group: root
+  commands: # file_copy plugin may need to run first!  Fixed this in our version of bootstrap-vz
+    commands: # None of these run with shell=True, so if you need it, you must be explicit
+    # Pause for debugging, run bootstrap-vz with --pause-on-error
+    #- ['chroot', '{root}', 'false']
+    # APT upgrade, since prebootstrapped image may be older
+    - ['chroot', '{root}', 'apt-get', 'update']
+    - ['chroot', '{root}', 'apt-get', 'upgrade', '-y']
+    # Cloud-init keeps messing with /etc/apt/sources.list, we provide our own config and template
+    - ['chroot', '{root}', 'dpkg-divert', '--add', '/etc/cloud/cloud.cfg']
+    - ['chroot', '{root}', 'dpkg-divert', '--add', '/etc/cloud/templates/sources.list.debian.tmpl']
+    - ['chroot', '{root}', 'bash', '-c', 'echo "keyboard-configuration    keyboard-configuration/model select Generic 105-key (Intl) PC" | debconf-set-selections']
+    - ['chroot', '{root}', 'bash', '-c', 'echo "keyboard-configuration    keyboard-configuration/variant select English (US)" | debconf-set-selections']
+    - ['chroot', '{root}', 'tasksel', 'install', '--new-install', 'xfce-destop']
+    - ['chroot', '{root}', 'apt-get', 'install', '-y', 'kali-desktop-xfce']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'ntp']
+    # In case cloud-init totally bombs, make sure SSH is still available to troubleshoot
+    - ['chroot', '{root}', 'systemctl', 'enable', 'ssh']
+    # cloud-init stages we're likely to use
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-init.service']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-init-local.service']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-config.service']
+    - ['chroot', '{root}', 'systemctl', 'enable', 'cloud-final.service']
+    # We want root, don't disable it
+    - ['chroot', '{root}', 'sed', '-ie', 's/disable_root: true/disable_root: false/', '/etc/cloud/cloud.cfg']
+    # smartd doesn't like the virtual disks
+    - ['chroot', '{root}', 'systemctl', 'disable', 'smartd']
+    # Misc packages for Sudowoodo
+    - ['chroot', '{root}', 'apt-get', 'install', '-y', 'x11vnc', 'dnsutils', 'build-essential']
+    # Use systemd Predictable Network Interface Names
+    # https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
+    - ['chroot', '{root}', 'rm', '/etc/systemd/network/99-default.link']
+    - ['chroot', '{root}', 'update-grub']
+...
