@@ -49,3 +49,16 @@ services:
       - /usr/lib/syslinux:/var/www/html/syslinux:ro
     restart: always
 
+  tftpd:
+    build: 
+      context: tftpd/
+    network_mode: host
+    ports:
+      - target: 69
+        published: 69
+        protocol: udp
+        mode: host
+    volumes:
+      - /srv/data/deploy/tftpd:/srv/tftp
+    restart: always
+
