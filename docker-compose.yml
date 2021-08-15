@@ -14,9 +14,35 @@ services:
     build:
       context: named/
     ports:
-      - 53/tcp
-      - 53/udp
+      - target: 53
+        published: 5053
+        protocol: tcp
+        mode: host
+      - target: 53
+        published: 5053
+        protocol: udp
+        mode: host
     volumes:
       - /srv/data/deploy/named/var/named:/var/named
       - /srv/data/deploy/named/etc/named.conf:/etc/named.conf
     restart: always
+
+  www:
+    build:
+      context: www/
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    volumes:
+      - /srv/data/deploy/www:/var/www/html
+      - /srv/data/deploy/img:/var/www/html/img
+      - /srv/data/deploy/apt-mirror/mirror/archive.ubuntu.com/ubuntu:/var/www/html/ubuntu
+      - /usr/lib/syslinux:/var/www/html/syslinux:ro
+    restart: always
+

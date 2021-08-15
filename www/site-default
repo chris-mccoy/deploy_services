@@ -17,7 +17,7 @@
 # Default server configuration
 #
 server {
-    listen 192.168.0.10:80 default_server;
+    listen 0.0.0.0:80 default_server;
     #listen [::]:80 default_server;
 
     access_log /dev/stdout;
