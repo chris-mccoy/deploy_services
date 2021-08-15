@@ -24,8 +24,27 @@ RUN addgroup -g 998 vault && \
     adduser -u 998 -S -G vault vault
 
 # Set up certificates, our base tools, and Vault.
-RUN apk add --no-cache ca-certificates gnupg openssl libcap su-exec dumb-init wget && \
-    gpg --keyserver pool.sks-keyservers.net --recv-keys 91A6E7F85D05C65630BEF18951852D87348FFC4C && \
+RUN set -eux; \
+    apk add --no-cache ca-certificates gnupg openssl libcap su-exec dumb-init tzdata && \
+    apkArch="$(apk --print-arch)"; \
+    case "$apkArch" in \
+        armhf) ARCH='arm' ;; \
+        aarch64) ARCH='arm64' ;; \
+        x86_64) ARCH='amd64' ;; \
+        x86) ARCH='386' ;; \
+        *) echo >&2 "error: unsupported architecture: $apkArch"; exit 1 ;; \
+    esac && \
+    VAULT_GPGKEY=C874011F0AB405110D02105534365D9472D7468F; \
+    found=''; \
+    for server in \
+        hkp://p80.pool.sks-keyservers.net:80 \
+        hkp://keyserver.ubuntu.com:80 \
+        hkp://pgp.mit.edu:80 \
+    ; do \
+        echo "Fetching GPG key $VAULT_GPGKEY from $server"; \
+        gpg --batch --keyserver "$server" --recv-keys "$VAULT_GPGKEY" && found=yes && break; \
+    done; \
+    test -z "$found" && echo >&2 "error: failed to fetch GPG key $VAULT_GPGKEY" && exit 1; \
     mkdir -p /tmp/build && \
     cd /tmp/build && \
     wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip && \

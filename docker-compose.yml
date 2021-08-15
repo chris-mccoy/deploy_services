@@ -30,6 +30,35 @@ services:
       - /srv/data/deploy/named/etc/named.conf:/etc/named.conf
     restart: always
 
+  tftpd:
+    build:
+      context: tftpd/
+    network_mode: host
+    ports:
+      - target: 69
+        published: 69
+        protocol: udp
+        mode: host
+    volumes:
+      - /srv/data/deploy/tftpd:/srv/tftp
+    restart: always
+
+  vault:
+    build:
+      args:
+        vault_release: "1.5.3"
+      context: vault/
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - target: 8200
+        published: 8200
+        protocol: tcp
+        mode: host
+    volumes:
+      - /srv/data/deploy/vault:/vault
+    restart: always
+
   www:
     build:
       context: www/
@@ -49,16 +78,4 @@ services:
       - /usr/lib/syslinux:/var/www/html/syslinux:ro
     restart: always
 
-  tftpd:
-    build: 
-      context: tftpd/
-    network_mode: host
-    ports:
-      - target: 69
-        published: 69
-        protocol: udp
-        mode: host
-    volumes:
-      - /srv/data/deploy/tftpd:/srv/tftp
-    restart: always
 
