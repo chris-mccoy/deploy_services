@@ -10,3 +10,13 @@ services:
       - /srv/data/deploy/dhcpd:/etc/dhcp
     restart: always
 
+  named:
+    build:
+      context: named/
+    ports:
+      - 53/tcp
+      - 53/udp
+    volumes:
+      - /srv/data/deploy/named/var/named:/var/named
+      - /srv/data/deploy/named/etc/named.conf:/etc/named.conf
+    restart: always
