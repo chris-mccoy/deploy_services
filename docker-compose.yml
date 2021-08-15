@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  dhcpd:
+    build: 
+      context: dhcpd/
+    network_mode: host
+    ports:
+      - 67
+    volumes:
+      - /srv/data/deploy/dhcpd:/etc/dhcp
+    restart: always
+
