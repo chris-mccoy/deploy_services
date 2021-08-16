@@ -18,16 +18,27 @@ services:
       context: named/
     ports:
       - target: 53
-        published: 5053
+        published: 53
         protocol: tcp
         mode: host
       - target: 53
-        published: 5053
+        published: 53
         protocol: udp
         mode: host
     volumes:
       - /srv/data/deploy/named/var/named:/var/named
       - /srv/data/deploy/named/etc/named.conf:/etc/named.conf
+    restart: always
+
+  registry:
+    image: "registry:2"
+    ports:
+      - target: 5000
+        published: 5000
+        protocol: tcp
+        mode: host
+    volumes:
+      - /srv/data/deploy/registry:/var/lib/registry
     restart: always
 
   tftpd:
@@ -41,6 +52,7 @@ services:
         mode: host
     volumes:
       - /srv/data/deploy/tftpd:/srv/tftp
+      - /srv/data/img:/srv/tftp/img
     restart: always
 
   vault:
@@ -73,9 +85,10 @@ services:
         mode: host
     volumes:
       - /srv/data/deploy/www:/var/www/html
-      - /srv/data/deploy/img:/var/www/html/img
-      - /srv/data/deploy/apt-mirror/mirror/archive.ubuntu.com/ubuntu:/var/www/html/ubuntu
+      - /srv/data/img:/var/www/html/img
+      - /srv/data/deploy/tftpd/cfg:/var/www/html/cfg
       - /usr/lib/syslinux:/var/www/html/syslinux:ro
+      #- /srv/data/deploy/apt-mirror/mirror/archive.ubuntu.com/ubuntu:/var/www/html/ubuntu
     restart: always
 
 
