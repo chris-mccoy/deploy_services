@@ -54,7 +54,7 @@ services:
         mode: host
     volumes:
       - /srv/data/deploy/tftpd:/srv/tftp
-      - /srv/data/img:/srv/tftp/img
+      - /srv/img:/srv/tftp/img
     restart: always
 
   vault:
@@ -87,7 +87,7 @@ services:
         mode: host
     volumes:
       - /srv/data/deploy/www:/var/www/html
-      - /srv/data/img:/var/www/html/img
+      - /srv/img:/var/www/html/img
       - /srv/data/deploy/tftpd/cfg:/var/www/html/cfg
       - /usr/lib/syslinux:/var/www/html/syslinux:ro
       #- /srv/data/deploy/apt-mirror/mirror/archive.ubuntu.com/ubuntu:/var/www/html/ubuntu
