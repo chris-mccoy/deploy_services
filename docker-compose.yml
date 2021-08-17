@@ -16,6 +16,8 @@ services:
   named:
     build:
       context: named/
+    # HACK cmm - workaround for ip masquerade issue
+    network_mode: host
     ports:
       - target: 53
         published: 53
