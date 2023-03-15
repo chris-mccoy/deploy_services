@@ -9,7 +9,7 @@
 #
 # docker run -d --restart always --name tftp --net host -v /srv/deploy/tftp:/srv/tftp tftp
 #
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 MAINTAINER chris@chr.is
 RUN apt update -y && apt upgrade -y
 RUN apt install atftpd -y

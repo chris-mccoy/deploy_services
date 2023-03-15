@@ -93,4 +93,15 @@ services:
       #- /srv/data/deploy/apt-mirror/mirror/archive.ubuntu.com/ubuntu:/var/www/html/ubuntu
     restart: always
 
+  squid:
+    build: 
+      context: squid/
+    network_mode: host
+    ports:
+      - target: 3128
+        published: 3128
+        protocol: tcp
+        mode: host
+    volumes: []
+    restart: always
 
