@@ -4,11 +4,11 @@ services:
     build: 
       context: dhcpd/
     network_mode: host
-    ports:
-      - target: 67
-        published: 67
-        protocol: udp
-        mode: host
+    #ports:
+    #  - target: 67
+    #    published: 67
+    #    protocol: udp
+    #    mode: host
     volumes:
       - /srv/data/deploy/dhcpd:/etc/dhcp
     restart: always
@@ -18,15 +18,15 @@ services:
       context: named/
     # HACK cmm - workaround for ip masquerade issue
     network_mode: host
-    ports:
-      - target: 53
-        published: 53
-        protocol: tcp
-        mode: host
-      - target: 53
-        published: 53
-        protocol: udp
-        mode: host
+    #ports:
+    #  - target: 53
+    #    published: 53
+    #    protocol: tcp
+    #    mode: host
+    #  - target: 53
+    #    published: 53
+    #    protocol: udp
+    #    mode: host
     volumes:
       - /srv/data/deploy/named/var/named:/var/named
       - /srv/data/deploy/named/etc/named.conf:/etc/named.conf
@@ -47,11 +47,11 @@ services:
     build:
       context: tftpd/
     network_mode: host
-    ports:
-      - target: 69
-        published: 69
-        protocol: udp
-        mode: host
+    #ports:
+    #  - target: 69
+    #    published: 69
+    #    protocol: udp
+    #    mode: host
     volumes:
       - /srv/data/deploy/tftpd:/srv/tftp
       - /srv/img:/srv/tftp/img
@@ -97,11 +97,11 @@ services:
     build: 
       context: squid/
     network_mode: host
-    ports:
-      - target: 3128
-        published: 3128
-        protocol: tcp
-        mode: host
+    #ports:
+    #  - target: 3128
+    #    published: 3128
+    #    protocol: tcp
+    #    mode: host
     volumes: []
     restart: always
 
